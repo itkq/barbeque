@@ -44,6 +44,16 @@ class Barbeque::SnsSubscriptionsController < Barbeque::ApplicationController
   private
 
   def fetch_sns_topic_arns
-    Barbeque::SNSSubscriptionService.sns_client.list_topics.topics.map(&:topic_arn)
+    topic_arns = []
+    next_token = nil
+
+    loop do
+      list_topics = Barbeque::SNSSubscriptionService.sns_client.list_topics(next_token: next_token)
+      topic_arns += list_topics.topics.map(&:topic_arn)
+      next_token = list_topics.next_token
+      break unless next_token
+    end
+
+    topics_arns
   end
 end
